@@ -6,3 +6,6 @@ run: build
 
 test:
 	@go test -v ./...
+
+c-up:
+	@docker compose up -d --wait

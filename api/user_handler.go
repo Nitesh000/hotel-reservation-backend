@@ -1,18 +1,55 @@
 package api
 
 import (
+	"github.com/Nitesh000/hotel-reservation-backend/db"
 	"github.com/Nitesh000/hotel-reservation-backend/types"
 	"github.com/gofiber/fiber/v2"
 )
 
-func HandleGetUsers(c *fiber.Ctx) error {
-	u := types.User{
-		FirstName: "Nitesh",
-		LastName:  "Tudu",
-	}
-	return c.JSON(u)
+type UserHandler struct {
+	userStore db.UserStore
 }
 
-func HandleGetUser(c *fiber.Ctx) error {
-	return c.JSON("Nitesh")
+func NewUserHandler(userStore db.UserStore) *UserHandler {
+	return &UserHandler{
+		userStore: userStore,
+	}
+}
+
+func (h *UserHandler) HandleGetUser(c *fiber.Ctx) error {
+	id := c.Params("id")
+	user, err := h.userStore.GetUserById(c.Context(), id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(user)
+}
+
+func (h *UserHandler) HandleGetUsers(c *fiber.Ctx) error {
+	users, err := h.userStore.GetUsers(c.Context())
+	if err != nil {
+		return err
+	}
+	return c.JSON(users)
+}
+
+func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
+	var params types.CreateUserPrams
+	if err := c.BodyParser(&params); err != nil {
+		return err
+	}
+	if err := params.Validate(); err != nil {
+		return err
+	}
+	user, err := types.NewUserFromParams(params)
+	if err != nil {
+		return err
+	}
+
+	insertedUser, err := h.userStore.PostUser(c.Context(), user)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(&insertedUser)
 }
