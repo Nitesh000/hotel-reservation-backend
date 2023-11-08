@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"log"
 
 	"github.com/Nitesh000/hotel-reservation-backend/types"
 	"go.mongodb.org/mongo-driver/bson"
@@ -17,6 +18,7 @@ type UserStore interface {
 	GetUserById(context.Context, string) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
 	PostUser(context.Context, *types.User) (*types.User, error)
+	DeleteUser(context.Context, string) error
 }
 
 type MongoUserStore struct {
@@ -80,4 +82,20 @@ func (s *MongoUserStore) PostUser(ctx context.Context, user *types.User) (*types
 		LastName:  user.LastName,
 		Email:     user.Email,
 	}, nil
+}
+
+func (s *MongoUserStore) DeleteUser(ctx context.Context, userId string) error {
+	oid, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return err
+	}
+
+	res, err := s.coll.DeleteOne(ctx, bson.M{"_id": oid})
+	if err != nil {
+		return err
+	}
+	if deletecount := res.DeletedCount; deletecount == 0 {
+		log.Println("No user is deleted!!")
+	}
+	return nil
 }
