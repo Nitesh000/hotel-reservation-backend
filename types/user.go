@@ -30,20 +30,21 @@ type User struct {
 	EncryptedPassword string             `bson:"encryptedPassword" json:"-"`
 }
 
-func (param CreateUserPrams) Validate() error {
+func (param CreateUserPrams) Validate() []string {
+	errors := []string{}
 	if len(param.FirstName) < minFirstNameLen {
-		return fmt.Errorf("first name length should be at least %d characters.", minFirstNameLen)
+		errors = append(errors, fmt.Sprintf("first name length should be at least %d characters.", minFirstNameLen))
 	}
 	if len(param.LastName) < minLastNameLen {
-		return fmt.Errorf("last name length should be at least %d characters.", minLastNameLen)
+		errors = append(errors, fmt.Sprintf("last name length should be at least %d characters.", minLastNameLen))
 	}
 	if len(param.Password) < minPasswordLen {
-		return fmt.Errorf("password length should be at least %d characters.", minPasswordLen)
+		errors = append(errors, fmt.Sprintf("password length should be at least %d characters.", minPasswordLen))
 	}
 	if !isEmailValid(param.Email) {
-		return fmt.Errorf("email is invalid")
+		errors = append(errors, fmt.Sprintf("email is invalid"))
 	}
-	return nil
+	return errors
 }
 
 func isEmailValid(e string) bool {
