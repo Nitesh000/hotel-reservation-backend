@@ -19,6 +19,7 @@ type UserStore interface {
 	GetUsers(context.Context) ([]*types.User, error)
 	PostUser(context.Context, *types.User) (*types.User, error)
 	DeleteUser(context.Context, string) error
+	UpdateUser(context.Context, bson.M, types.UpdateUserParams) error
 }
 
 type MongoUserStore struct {
@@ -96,6 +97,24 @@ func (s *MongoUserStore) DeleteUser(ctx context.Context, userId string) error {
 	}
 	if deletecount := res.DeletedCount; deletecount == 0 {
 		log.Println("No user is deleted!!")
+	}
+	return nil
+}
+
+func (s *MongoUserStore) UpdateUser(ctx context.Context, filter bson.M, update types.UpdateUserParams) error {
+	values := bson.M{}
+	values["firstName"] = update.FirstName
+	values["lastName"] = update.LastName
+	log.Println(values)
+	updateObject := bson.D{
+		{
+			"$set", values,
+		},
+	}
+
+	_, err := s.coll.UpdateOne(ctx, filter, updateObject)
+	if err != nil {
+		return err
 	}
 	return nil
 }

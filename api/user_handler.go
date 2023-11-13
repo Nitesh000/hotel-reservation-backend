@@ -6,6 +6,8 @@ import (
 	"github.com/Nitesh000/hotel-reservation-backend/db"
 	"github.com/Nitesh000/hotel-reservation-backend/types"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -70,4 +72,26 @@ func (h *UserHandler) HandlePostUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(&insertedUser)
+}
+
+func (h *UserHandler) HandlePutUser(c *fiber.Ctx) error {
+	// var update bson.M
+	var userData types.UpdateUserParams
+	userId := c.Params("id")
+
+	// NOTE: converting the string id to object id
+	oid, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return c.JSON(map[string]string{"error": "wrong account Id."})
+	}
+
+	if err := c.BodyParser(&userData); err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": oid}
+	if err := h.userStore.UpdateUser(c.Context(), filter, userData); err != nil {
+		return err
+	}
+	return c.JSON(map[string]string{"updated user id": userId})
 }

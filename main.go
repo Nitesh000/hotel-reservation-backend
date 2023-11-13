@@ -41,5 +41,6 @@ func main() {
 	apiv1.Get("/users", userHandler.HandleGetUsers)
 	apiv1.Get("/user/:id", userHandler.HandleGetUser)
 	apiv1.Delete("/user/:id", userHandler.HandeDeleteUser)
+	apiv1.Put("/user/:id", userHandler.HandlePutUser)
 	app.Listen(*listenAddr)
 }
