@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/Nitesh000/hotel-reservation-backend/types"
@@ -14,7 +15,13 @@ const (
 	userColl = "users"
 )
 
+type Dropper interface {
+	Drop(context.Context) error
+}
+
 type UserStore interface {
+	Dropper
+
 	GetUserById(context.Context, string) (*types.User, error)
 	GetUsers(context.Context) ([]*types.User, error)
 	PostUser(context.Context, *types.User) (*types.User, error)
@@ -27,10 +34,10 @@ type MongoUserStore struct {
 	coll   *mongo.Collection
 }
 
-func NewMongoUserStore(c *mongo.Client) *MongoUserStore {
+func NewMongoUserStore(c *mongo.Client, dbname string) *MongoUserStore {
 	mongoUserStore := &MongoUserStore{
 		client: c,
-		coll:   c.Database(DBNAME).Collection(userColl),
+		coll:   c.Database(dbname).Collection(userColl),
 	}
 
 	return mongoUserStore
@@ -67,6 +74,11 @@ func (s *MongoUserStore) GetUsers(ctx context.Context) ([]*types.User, error) {
 	// }
 	// defer cur.Close(ctx)
 	return users, nil
+}
+
+func (s *MongoUserStore) Drop(ctx context.Context) error {
+	fmt.Println("--- droppping user collection")
+	return s.coll.Drop(ctx)
 }
 
 func (s *MongoUserStore) PostUser(ctx context.Context, user *types.User) (*types.User, error) {
